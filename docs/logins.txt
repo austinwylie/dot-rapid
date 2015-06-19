@@ -1,0 +1,7 @@
+SSH
+User: bitnami
+Keyfile: PipelionsKeyPair.pem
+
+PostgreSQL
+User: postgres
+Pass: lbmmZL4loMhf

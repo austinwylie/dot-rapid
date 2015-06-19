@@ -1,0 +1,4 @@
+Notes on libraries and code for handling geospatial data.
+
+ogr2ogr
+djangogeojson
