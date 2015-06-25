@@ -2,8 +2,12 @@ from django.core.management import BaseCommand
 from django.db import connection
 import random
 import sys
-from rapid.api.export import to_json
+import time
+from rapid.api.export import export_shapefile
+from rapid.api.ingest import unzip_from
 from rapid.database import select
+from rapid.database.select import *
+from rapid.helpers import *
 from rapid.models import Feature, GeoView, DataLayer, ApiToken
 import requests
 
@@ -11,9 +15,20 @@ import requests
 class Command(BaseCommand):
     def handle(self, *args, **options):
         self.say_hi()
-        # self.alexa_things()
-        # self.testwoo()
-        # self.austin_things()
+
+        path = '/home/dotproj/djangostack-1.7.8-0/apps/django/django_projects/pipelion/data/input/Archive.zip'
+
+        filename = os.path.basename(path)
+        filename = os.path.splitext(filename)[0]
+
+        DataLayer.objects.all().delete()
+
+        uid = create_layer(filename + '_' + str(int(time.time())), True, properties=None)
+        import_shapefile(path, layer_uid=uid)
+
+        # uid = 'fRqJo7azWgpGoMnzShjvq5'
+        export_shapefile(get_layer(uid).feature_set.all()[:100])
+
 
     def say_hi(self):
         print "Hello world"
@@ -31,192 +46,11 @@ class Command(BaseCommand):
         pass
 
     def testwoo(self):
-        smptid = DataLayer.objects.get(uid='vzLmskC9YPa5ZeGAmwVKrg').id
-        mdptid = DataLayer.objects.get(uid='ffYdeyYtUHPwAJzvyrrjJ').id
-        lgptid = DataLayer.objects.get(uid='oHXgMsm9CrzerWL48sLnp9').id
-        smpoid = DataLayer.objects.get(uid='7LxYP7Atf5YnDgfonLhNJf').id
-        mdpoid = DataLayer.objects.get(uid='3xurg4S3h5ZNvXsvgnPd6B').id
-        lgpoid = DataLayer.objects.get(uid='jKwBMMojqT8Wzs5kxkuguH').id
-
-        shasta_county = Feature.objects.get(uid='93Ru9G2wEd7NHTQqSktb4V')
-
-        results = list(Feature.objects.filter(geom__intersects=shasta_county.geom, layer_id=smptid))
-        results = list(Feature.objects.filter(geom__intersects=shasta_county.geom, layer_id=mdptid))
-        results = list(Feature.objects.filter(geom__intersects=shasta_county.geom, layer_id=lgptid))
-
-        results = list(Feature.objects.filter(geom__intersects=shasta_county.geom, layer_id=smpoid))
-        results = list(Feature.objects.filter(geom__intersects=shasta_county.geom, layer_id=mdpoid))
-        results = list(Feature.objects.filter(geom__intersects=shasta_county.geom, layer_id=lgpoid))
-
-        for query in connection.queries:
-            print query
-            print ''
-
-        return
-
-    def austin_things(self):
-
-        DataLayer.objects.filter(id__gte=56, id__lte=121).delete()
-        DataLayer.objects.filter(id=127).delete()
-
-        # points_layer_sm = select.create_layer("Points sm", True, 'hello properties')
-        # polygon_layer_sm = select.create_layer("Polygon sm", True, 'hello properties')
-        # points_layer_md = select.create_layer("Points md", True, 'hello properties')
-        # polygon_layer_md = select.create_layer("Polygon md", True, 'hello properties')
-        # points_layer_lg = select.create_layer("Points lg", True, 'hello properties')
-        polygon_layer_lg = select.create_layer("Polygon lg", True, 'hello properties')
-
-        # sm_points = DataLayer.objects.get(uid=points_layer_sm)
-        # md_points = DataLayer.objects.get(uid=points_layer_md)
-        # lg_points = DataLayer.objects.get(uid=points_layer_lg)
-        #
-        # sm_pols = DataLayer.objects.get(uid=polygon_layer_sm)
-        # md_pols = DataLayer.objects.get(uid=polygon_layer_md)
-        lg_pols = DataLayer.objects.get(uid=polygon_layer_lg)
-
-        all_points_layer = DataLayer.objects.get(uid='QJ6oTbnK6iaxp4TbJewYNi')
-        all_polygons_layer = DataLayer.objects.get(uid='agRDPtbkZNoGGw3ZSkYmnA')
-
-        polygon_in_shasta = Feature.objects.get(uid='pAaGhrSRaftajxrnRJVWWL')
-        point_in_shasta = Feature.objects.get(uid='koRhUHuwdZKoGAh8GZgdtA')
-
-        # select.create_feature(point_in_shasta.geom, sm_points)
-        # select.create_feature(point_in_shasta.geom, md_points)
-        # select.create_feature(point_in_shasta.geom, lg_points)
-        #
-        # select.create_feature(polygon_in_shasta.geom, sm_pols)
-        # select.create_feature(polygon_in_shasta.geom, md_pols)
-        select.create_feature(polygon_in_shasta.geom, lg_pols)
-
-        # count = 0
-        # limit = 9
-        # to_add = Feature.objects.filter(layer_id=all_points_layer.id)[:limit]
-        # while count < limit:
-        #     select.create_feature(random.choice(to_add).geom, sm_points)
-        #     count += 1
-        #
-        # print '1'
-        #
-        # count = 0
-        # limit = 999
-        # to_add = Feature.objects.filter(layer_id=all_points_layer.id)[:limit]
-        # while count < limit:
-        #     choice = random.choice(to_add)
-        #     select.create_feature(choice.geom, md_points)
-        #     count += 1
-        #     if count % 10 == 0:
-        #         print count
-        #
-        # print '1'
-        #
-        # count = 0
-        # limit = 99999
-        # to_add = Feature.objects.filter(layer_id=all_points_layer.id)[:limit]
-        # while count < limit:
-        #     select.create_feature(random.choice(to_add).geom, lg_points)
-        #     count += 1
-        #     if count % 100 == 0:
-        #         print count
-        #
-        # print '1'
-        #
-        # count = 0
-        # limit = 9
-        # to_add = Feature.objects.filter(layer_id=all_polygons_layer.id)[:limit]
-        # while count < limit:
-        #     select.create_feature(random.choice(to_add).geom, sm_pols)
-        #     count += 1
-        #
-        # print '1'
-        #
-        # count = 0
-        # limit = 999
-        # to_add = Feature.objects.filter(layer_id=all_polygons_layer.id)[:limit]
-        # while count < limit:
-        #     select.create_feature(random.choice(to_add).geom, md_pols)
-        #     count += 1
-
-        print '1'
-
-        count = 0
-        limit = 99999
-        to_add = Feature.objects.filter(layer_id=all_polygons_layer.id)[:limit]
-        while count < limit:
-            select.create_feature(random.choice(to_add).geom, lg_pols)
-            count += 1
-            if count % 100 == 0:
-                print count
-
-        print '1'
-        print 'done'
-
-        shasta_county = Feature.objects.get(uid='93Ru9G2wEd7NHTQqSktb4V')
-
-        return
-
-        smptid = DataLayer.objects.get(uid=points_layer_sm)
-        mdptid = DataLayer.objects.get(uid=points_layer_md)
-        lgptid = DataLayer.objects.get(uid=points_layer_lg)
-        smpoid = DataLayer.objects.get(uid=polygon_layer_sm)
-        mdpoid = DataLayer.objects.get(uid=polygon_layer_md)
-        lgpoid = DataLayer.objects.get(uid=polygon_layer_lg)
-
-        results = Feature.objects.filter(geom__intersects=shasta_county.geom, layer_id=smptid)
-        results = Feature.objects.filter(geom__intersects=shasta_county.geom, layer_id=mdptid)
-        results = Feature.objects.filter(geom__intersects=shasta_county.geom, layer_id=lgptid)
-
-        results = Feature.objects.filter(geom__intersects=shasta_county.geom, layer_id=smpoid)
-        results = Feature.objects.filter(geom__intersects=shasta_county.geom, layer_id=mdpoid)
-        results = Feature.objects.filter(geom__intersects=shasta_county.geom, layer_id=lgpoid)
-
-        for query in connection.queries:
-            print query
-            print '\n'
-
-        return
-
-        import sys
-
-        print sys.path
-
         # try:
         #     from osgeo import ogr, osr, gdal
         # except:
         #     sys.exit('ERROR: cannot find GDAL/OGR modules')
 
-        # esriprj2standards('data/WA/WA_Cowlitz_StreetCenterlines/StreetCenterlines.prj')
-
-
-
-        # extract zip file
-        # for file in zip:
-        # find dbf, prj, and shp
-        # use pyshp
-        # make new features
-
-
-
+        # self.esriprj2standards('/home/dotproj/djangostack-1.7.8-0/apps/django/django_projects/pipelion/data/samples/WA/WA_Cowlitz_StreetCenterlines/StreetCenterlines.prj')
         return
-
-
-        token = ApiToken("Austin")
-        print token
-        token.save()
-        print token
-
-
-        return
-        # sys.setrecursionlimit(50000)
-        for layer in DataLayer.objects.all().order_by('?'):
-            print layer.descriptor
-            for feature in layer.feature_set.all():
-                print feature.getGeoJson()
-            print '\n\n\n\n\n'
-
-        return
-        print "SLO county's 1.0+ earthquakes in previous 7 days:"
-        slo = GeoView.objects.get(descriptor='San Luis Obispo')
-        results = Feature.objects.filter(geom__within=slo.geom)
-        for r in results:
-            print r.geom.geojson
 

@@ -87,7 +87,7 @@ DATABASES = {
 # UNIX
 GEOS_LIBRARY_PATH = '/home/dotproj/djangostack-1.7.8-0/postgresql/lib/libgeos_c.so'
 GDAL_LIBRARY_PATH = '/home/dotproj/djangostack-1.7.8-0/postgresql/lib/libgdal.so'
-GDAL_DATA = '/bitnami/djangostack-linux-x64/output/postgresql/share/gdal'
+GDAL_DATA = '/home/dotproj/djangostack-1.7.8-0/postgresql/share/gdal'
 
 # OS X
 # GEOS_LIBRARY_PATH = '/Applications/djangostack-1.6.10-0/postgresql/lib/libgeos_c.dylib'

@@ -22,10 +22,10 @@ from django.contrib.gis.geos import Point, Polygon
 from shapely.geometry import asShape
 import geojson
 import jsonpickle
-from rapid.api.export import to_json
 from rapid.database.select import create_layer, get_layers, create_geoview, get_geoviews, add_layer_to_geoview, \
-    create_feature, get_feature, update_feature, create_archive, get_layer, get_geoview, import_geojson_url, \
+    create_feature, get_feature, update_feature, get_layer, get_geoview, import_geojson_url, \
     remove_layer_from_geoview, get_apitoken, delete_feature, delete_layer, delete_geoview
+from rapid.helpers import to_json
 
 
 class JSONResponse(HttpResponse):
@@ -46,6 +46,7 @@ def layers(request):
     descriptor = None
     properties = None
     is_public = None
+
     # if request.get('token'):
     #     token = request.get('token')
     #     token = get_apitoken(token)
@@ -186,8 +187,8 @@ def features(request):
                 geom = content['geom']
         if jsonDict['props']:
             properties = jsonDict['props']
-        archive = create_archive(content, layer, models.FileType.GEOJSON, token)
-        feature = create_feature(geom, layer, archive, properties, token)
+        # archive = create_archive(content, layer, models.FileType.GEOJSON, token)
+        feature = create_feature(geom, layer, archive=None, properties=properties, token=token)
         myjson = to_json(feature)
         return HttpResponse(myjson, content_type='application/json')
     return HttpResponse('must POST')
@@ -225,7 +226,7 @@ def updateFeature(request, feature_uid):
                 geom = content['geom']
         if jsonDict['props']:
             properties = jsonDict['props']
-        archive = create_archive(content, layer, models.FileType.GEOJSON, token)
+        archive = None
         feature = update_feature(feature_uid, geom, layer, archive, properties, token)
         myjson = to_json(feature)
         return HttpResponse(myjson, content_type='application/json')
