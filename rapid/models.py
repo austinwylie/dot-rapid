@@ -37,10 +37,12 @@ class GeoView(models.Model):
     bbox = models.PolygonField(null=True)
     properties = models.TextField(null=True)
     layers = models.ManyToManyField('DataLayer', null=True)
+    is_public = models.BooleanField(default=False)
 
     # unpublished flags. workaround for including/excluding extra info in output
     include_layers = models.NullBooleanField(null=True)
     include_geom = models.NullBooleanField(null=True)
+    token_key = models.TextField(null=True)
 
     objects = models.GeoManager()
 
@@ -60,6 +62,9 @@ class GeoView(models.Model):
             del state['geom']
 
         del state['_state']
+        del state['token_key']
+        del state['include_layers']
+        del state['include_geom']
         return state
 
     def add_layer(self, layer):
@@ -70,8 +75,9 @@ class GeoView(models.Model):
     def get_features(self):
         results = []
         for layer in self.layers.all():
-            features = layer.feature_set.filter(geom__intersects=self.geom)
-            results.append({'uid': layer.uid, 'features': list(features.values_list('uid', flat=True))})
+            if layer.has_permissions(self.token_key, Role.VIEWER):
+                features = layer.feature_set.filter(geom__intersects=self.geom)
+                results.append({'uid': layer.uid, 'features': list(features.values_list('uid', flat=True))})
 
         return results
 
@@ -104,6 +110,29 @@ class DataLayer(models.Model):
         del state['include_features']
 
         return state
+
+    def has_permissions(self, token_key, role):
+        if self.is_public and role == Role.VIEWER:
+            return True
+
+        if not token_key:
+            return False
+
+        owners = DataLayerRole.objects.filter(token__key=token_key, layer__uid=self.uid, role=Role.OWNER)
+        editors = DataLayerRole.objects.filter(token__key=token_key, layer__uid=self.uid, role=Role.EDITOR)
+        viewers = DataLayerRole.objects.filter(token__key=token_key, layer__uid=self.uid, role=Role.VIEWER)
+
+        if role == Role.OWNER:
+            if owners.count() > 0:
+                return True
+        elif role == Role.EDITOR:
+            if owners.count() > 0 or editors.count() > 0:
+                return True
+        elif role == Role.VIEWER:
+            if owners.count() > 0 or editors.count() > 0 or viewers.count() > 0:
+                return True
+
+        return False
 
 
 class DataSource(models.Model):

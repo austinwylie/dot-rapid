@@ -89,12 +89,15 @@ def to_json(params):
     out = out.replace(': None', ': null')
     return out
 
+def json_error(msg):
+    return to_json({"status": str(msg)})
+
 def unzip_from(path):
     import os
     import zipfile
     import time
 
-    output_path = 'data/input/extracted'
+    output_path = 'data/temp'
     print 'unzipping {0}'.format(path)
 
     zip = zipfile.ZipFile(path)
