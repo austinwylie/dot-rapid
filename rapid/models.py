@@ -151,8 +151,7 @@ class ApiToken(models.Model):
     descriptor = models.TextField(unique=True)
     issued = models.TimeField(null=True, auto_now_add=True)
 
-    def __init__(self, descriptor):
-        super(ApiToken, self).__init__()
+    def setup(self, descriptor):
         self.uid = get_uid()
         self.key = self.generate_secure_key()
         self.descriptor = descriptor
@@ -172,7 +171,7 @@ class ApiToken(models.Model):
         return friendly_digest
 
     def __str__(self):
-        return self.key + ', ' + self.descriptor
+        return self.uid + ', ' + self.descriptor
 
 
 class GeoViewRole(models.Model):
