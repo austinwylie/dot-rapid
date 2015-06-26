@@ -1,13 +1,9 @@
-from django.contrib.admin import helpers
-import jsonpickle
 import itertools
 import shapefile
-import time
-from rapid import models
-from rapid.database.select import get_layer
-from rapid.helpers import dir_zip
 import json
 
+from rapid import models
+from rapid.select import get_layer
 
 def export_layer(layer, format, start=None, end=None):
     # if layer not found, error
@@ -57,7 +53,6 @@ def export_shapefile(features_queryset):
         output_path = 'data/output/'
         directory = get_layer(layer_group[0]).descriptor
         output_path += directory
-        print output_path
 
         geom_type_groups = itertools.groupby(sorted(list(layer_group[1]), key=lambda abc: abc.geom.geom_typeid), lambda y: y.geom.geom_typeid)
         for geom_type_group in geom_type_groups:
@@ -89,7 +84,6 @@ def export_shapefile(features_queryset):
                     if type(item) is float:
                         field_type = 'N'
                         length = 10
-                        # deci = 10
                         break
                     if type(item) is long:
                         field_type = 'L'
@@ -105,18 +99,7 @@ def export_shapefile(features_queryset):
             for field in fields:
                 sf.field(name=field['name'], fieldType=field['type'], size=field['length'], decimal=field['deci'])
 
-            print 'Own fields:'
-            print fields
-            print 'sf fields:'
-            print sf.fields
-
-            print 'LEN'
-            print len(sf.fields)
-
             for feature in features:
-                print 'Exporting feature...'
-                print feature.geom.geom_type
-                print feature.geom.coords
 
                 if feature.geom.geom_type.lower() == 'Point'.lower():
                     sf.point(float(feature.geom.coords[0]), float(feature.geom.coords[1]))
@@ -124,17 +107,11 @@ def export_shapefile(features_queryset):
                     sf.poly(parts=feature.geom.coords, shapeType=sf_type)
 
                 feature_props = json.loads(feature.properties)
-                print 'Unmodified props'
-                print feature_props
 
                 for key in feature_props.keys():
                     val = feature_props[key]
                     del feature_props[key]
                     feature_props[key.encode('utf-8')[:10]] = val
-
-                print 'Changed props'
-                print feature_props
-                print len(feature_props.keys())
 
                 record_values = []
                 for field in fields:
@@ -145,14 +122,7 @@ def export_shapefile(features_queryset):
                     else:
                         record_values.append(None)
 
-                print 'LEN'
-                print len(sf.fields)
                 sf.record(*record_values)
-
-            print 'LEN2'
-            print len(sf.shapes())
-            print len(sf.records)
-
 
             sf.save(output_path + '_' + type_str)
 

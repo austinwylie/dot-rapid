@@ -1,30 +1,15 @@
-# right click and upload
-# restart web server to reflect changes on pipelions.com
 from django.contrib.gis.geos import GEOSGeometry
-from django.shortcuts import render
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_http_methods
 from django.views.static import serve
 import os
 from rest_framework.renderers import JSONRenderer
-from rest_framework.parsers import JSONParser
-from django.contrib.gis.db import models
 import urllib
-import rapid
-from django.contrib.auth.models import User
-from django.contrib.auth import authenticate, login, logout
 import json
-import urllib2
-import models
-import django
-from django.contrib.gis.geos import Point, Polygon
-from shapely.geometry import asShape
-import geojson
-import jsonpickle
-from rapid.database.select import create_layer, get_layers, create_geoview, get_geoviews, add_layer_to_geoview, \
+
+from rapid.select import create_layer, get_layers, create_geoview, get_geoviews, add_layer_to_geoview, \
     create_feature, get_feature, update_feature, get_layer, get_geoview, import_geojson_url, \
-    remove_layer_from_geoview, get_apitoken, delete_feature, delete_layer, delete_geoview
+    remove_layer_from_geoview, delete_feature, delete_layer, delete_geoview
 from rapid.helpers import to_json
 
 
