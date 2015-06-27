@@ -12,8 +12,11 @@ urlpatterns = patterns('rapid.views',
     url(r'^rapid/layer/$', 'layers'),
     url(r'^rapid/geoview/$', 'geoviews'),
 
+    # url(r'^rapid/geoview/(?P<geo_uid>[\w]+)/export/$', 'exportGeoView'),
+    # url(r'^rapid/layer/(?P<layer_uid>[\w]+)/export/$', 'exportLayer'),
+
     url(r'^rapid/feature/(?P<feature_uid>[\w]+)/$', 'getFeature'),
-    url(r'^rapid/layer/(?P<layer_uid>[\w]+)/', 'getLayer'),
+    url(r'^rapid/layer/(?P<layer_uid>[\w]+)/$', 'getLayer'),
     url(r'^rapid/geoview/(?P<geo_uid>[\w]+)/$', 'getGeoview'),
 
     url(r'^rapid/import/(?P<layerId>[\w]+)/', 'featuresFromURL'),

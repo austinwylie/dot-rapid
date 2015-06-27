@@ -45,11 +45,16 @@ def layers(request):
     if request.method == 'POST':
         jsonDict = json.loads(request.body)
 
-        if jsonDict['des']:
+        if 'des' in jsonDict:
             descriptor = jsonDict['des']
-        if jsonDict['public']:
-            is_public = jsonDict['public']
-        if jsonDict['props']:
+
+        if 'public' in jsonDict:
+            if jsonDict['public'] == "False" or jsonDict['public'] == False:
+                is_public = False
+            else:
+                is_public = True
+
+        if 'props' in jsonDict:
             properties = jsonDict['props']
 
         uid = data.create_layer(descriptor, is_public, properties)
@@ -103,7 +108,10 @@ def geoviews(request):
             descriptor = jsonDict['des']
 
         if 'public' in jsonDict:
-            public = True
+            if jsonDict['public'] == "False" or jsonDict['public'] == False:
+                public = False
+            else:
+                public = True
 
         if 'props' in jsonDict:
             properties = jsonDict['props']
@@ -432,14 +440,15 @@ def getGeoview(request, geo_uid):
             return serve(request, os.path.basename(filepath), os.path.dirname(filepath))
         else:
             geoview = data.get_geoview(geo_uid)
-            geoview.includes_layers = geoview.include_geom = True
+            geoview.include_layers = geoview.include_geom = True
+            geoview.token_key = token_key
             myjson = to_json(geoview)
-            geoview.includes_layers = geoview.include_geom = False
+            geoview.include_layers = geoview.include_geom = False
             return HttpResponse(myjson, content_type='application/json')
     if request.method == 'DELETE':
         if not data.has_geoview_permissions(geo_uid, Role.EDITOR):
             return HttpResponse(json_error('No editing permissions for this GeoView.'))
         data.delete_geoview(geo_uid)
-        message = "DELETE geoview with uid ", geo_uid, " :: SUCCESS"
+        message = "Deleted GeoView with uid " + str(geo_uid)
         return HttpResponse(json_error(message))
-    return HttpResponse(json_error('ERROR: must GET or DELETE'))
+    return HttpResponse(json_error('ERROR: must GET or DELETE GeoViews'))

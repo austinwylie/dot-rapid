@@ -1,28 +1,38 @@
 from django.core.management import BaseCommand
 import time
 
-from rapid.export import export_shapefile
+from rapid.exporter import Exporter
 from rapid.select import *
 from rapid.helpers import *
-from rapid.models import DataLayer
+from rapid.models import *
+from rapid.importer import *
 
 
 class Command(BaseCommand):
+
     def handle(self, *args, **options):
         self.say_hi()
+        GeoView.objects.all().delete()
+        ApiToken.objects.all().delete()
+        DataLayer.objects.all().delete()
+        return
 
-        path = '/home/dotproj/djangostack-1.7.8-0/apps/django/django_projects/pipelion/data/input/Archive.zip'
+        path = '/home/dotproj/djangostack-1.7.8-0/apps/django/django_projects/pipelion/data/dropbox/sf-bay.zip'
 
         filename = os.path.basename(path)
         filename = os.path.splitext(filename)[0]
 
         DataLayer.objects.all().delete()
 
-        uid = create_layer(filename + '_' + str(int(time.time())), True, properties=None)
-        import_shapefile(path, layer_uid=uid)
+        data = DataOperator('974bdff1e307fa4506e69b810db04ac709d99796')
+        uid = data.create_layer(filename + '_' + str(int(time.time())), True, properties=None)
 
+        importer = Importer('974bdff1e307fa4506e69b810db04ac709d99796')
+        importer.import_shapefile(path, layer_uid=uid)
+        return
         # uid = 'fRqJo7azWgpGoMnzShjvq5'
-        export_shapefile(get_layer(uid).feature_set.all()[:100])
+        exporter = Exporter('974bdff1e307fa4506e69b810db04ac709d99796')
+        exporter.export_shapefile(data.get_layer(uid).feature_set.all())
 
 
     def say_hi(self):

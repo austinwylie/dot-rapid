@@ -53,10 +53,10 @@ class GeoView(models.Model):
         state = self.__dict__.copy()
         state.pop('layers', None)
         state['geom'] = {'type': self.geom.geom_type, 'coordinates': self.geom.coords}
-        state['layers'] = self.get_features()
+        # state['layers'] = self.get_json_features()
         if self.include_layers:
             # state['layers'] = list(self.layers.all().values_list('uid', flat=True))
-            state['layers'] = self.get_features()
+            state['layers'] = self.get_json_features()
 
         if not self.include_geom:
             del state['geom']
@@ -72,12 +72,24 @@ class GeoView(models.Model):
 
         self.layers.add(layer)
 
-    def get_features(self):
+    def get_json_features(self):
         results = []
         for layer in self.layers.all():
+            features = layer.feature_set.filter(geom__intersects=self.geom)
+            # results.append({'uid': layer.uid, 'descriptor': layer.descriptor,
+            #                 'features': list(features.values_list('uid', flat=True))})
             if layer.has_permissions(self.token_key, Role.VIEWER):
                 features = layer.feature_set.filter(geom__intersects=self.geom)
-                results.append({'uid': layer.uid, 'features': list(features.values_list('uid', flat=True))})
+                results.append({'uid': layer.uid, 'descriptor': layer.descriptor, 'features': list(features.values_list('uid', flat=True))})
+
+        return results
+
+    def get_features(self, token_key):
+        results = []
+        for layer in self.layers.all():
+            if layer.has_permissions(token_key, Role.VIEWER):
+                features = layer.feature_set.filter(geom__intersects=self.geom)
+                results.extend(list(features))
 
         return results
 

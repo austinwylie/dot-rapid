@@ -22,7 +22,11 @@ class DataOperator(object):
             return None
 
     def has_layer_permissions(self, layer_uid, role):
-        layer = DataLayer.objects.filter(uid=layer_uid)
+        try:
+            layer = DataLayer.objects.get(uid=layer_uid)
+        except:
+            return False
+
         if layer.is_public and role == Role.VIEWER:
             return True
 
@@ -46,16 +50,20 @@ class DataOperator(object):
         return False
 
     def has_geoview_permissions(self, geoview_uid, role):
-        geoview = GeoView.objects.get(uid=geoview_uid)
+        try:
+            geoview = GeoView.objects.get(uid=geoview_uid)
+        except:
+            return False
+
         if geoview.is_public and role == Role.VIEWER:
             return True
 
         if not self.token_key:
             return False
 
-        owners = GeoViewRole.objects.filter(token__key=self.token_key, layer__uid=geoview_uid, role=Role.OWNER)
-        editors = GeoViewRole.objects.filter(token__key=self.token_key, layer__uid=geoview_uid, role=Role.EDITOR)
-        viewers = GeoViewRole.objects.filter(token__key=self.token_key, layer__uid=geoview_uid, role=Role.VIEWER)
+        owners = GeoViewRole.objects.filter(token__key=self.token_key, geo_view__uid=geoview_uid, role=Role.OWNER)
+        editors = GeoViewRole.objects.filter(token__key=self.token_key, geo_view__uid=geoview_uid, role=Role.EDITOR)
+        viewers = GeoViewRole.objects.filter(token__key=self.token_key, geo_view__uid=geoview_uid, role=Role.VIEWER)
 
         if role == Role.OWNER:
             if owners.count() > 0:
@@ -113,6 +121,8 @@ class DataOperator(object):
         layer = DataLayer(descriptor=descriptor, properties=properties, is_public=is_public)
         layer.uid = get_uid()
         layer.save()
+        role = DataLayerRole(layer_id=layer.uid, token_id=self.get_apitoken().uid, role=Role.OWNER)
+        role.save()
         return layer.uid
 
     def get_layers(self):
@@ -165,6 +175,9 @@ class DataOperator(object):
         view = GeoView(geom=geom, descriptor=descriptor, properties=properties, is_public=public)
         view.uid = get_uid()
         view.save()
+
+        role = GeoViewRole(geo_view=view, token_id=self.get_apitoken().uid, role=Role.OWNER)
+        role.save()
         return view.uid
 
     def add_layer_to_geoview(self, geoview_uid, layer_uid):
@@ -178,11 +191,10 @@ class DataOperator(object):
         return "FAILURE: incorrect uid"
 
 
-    def remove_layer_from_geoview(self, layer_uid, geoview_uid):
+    def remove_layer_from_geoview(self, geoview_uid, layer_uid):
         geoview = GeoView.objects.filter(uid=geoview_uid)
         layer = DataLayer.objects.filter(uid=layer_uid)
 
-        # make sure only one geoview and layer
         if geoview.count() > 0 and layer.count() > 0:
             geoview[0].remove_layer(layer[0])
             geoview[0].save()

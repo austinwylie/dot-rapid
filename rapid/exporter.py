@@ -5,6 +5,7 @@ import time
 
 from rapid import models
 from rapid.helpers import dir_zip
+from rapid.models import DataLayer, Role, GeoView
 from rapid.select import DataOperator
 
 
@@ -12,25 +13,32 @@ class Exporter(object):
     def __init__(self, token_key=None):
         self.token_key = token_key
 
-    def export_layer(self, layer, format, start=None, end=None):
-        # if layer not found, error
-        # if start > end, error
-        # etc.
+    def export_layer(self, layer_uid, format=None, start=None, end=None):
 
-        if format == models.FileType.GEOJSON:
-            # return geojson
-            pass
-        elif format == models.FileType.SHAPEFILE:
-            # return shapefile
-            pass
-        else:
-            # error or use default
-            pass
+        data = DataOperator(self.token_key)
+        if not data.has_layer_permissions(layer_uid, Role.VIEWER):
+            return False
 
-    def export_geoview(self, geoview, type, start=None, end=None):
-        # and so on
-        pass
+        layer = DataLayer.objects.get(uid=layer_uid)
+        all_features = layer.feature_set.all()
 
+        features = all_features
+
+        if start or end:
+            if end:
+                features = features.filter(create_timestamp__lte=end)
+            if start:
+                features = features.filter(create_timestamp__gte=start)
+
+        self.export_shapefile(features)
+        return True
+
+    def export_geoview(self, geoview_uid, format=None, start=None, end=None):
+        geoview = GeoView.objects.get(uid=geoview_uid)
+        print geoview
+        print 'HERE'
+        print len(geoview.get_features(self.token_key))
+        self.export_shapefile(geoview.get_features(self.token_key))
 
     def get_type(self, features):
         type_str = features[0].geom.geom_type
