@@ -88,6 +88,7 @@ class GeoView(models.Model):
         results = []
         for layer in self.layers.all():
             if layer.has_permissions(token_key, Role.VIEWER):
+                print 'Exporting {0} features in {1}'.format(len(layer.feature_set.all()), layer.descriptor)
                 features = layer.feature_set.filter(geom__intersects=self.geom)
                 results.extend(list(features))
 

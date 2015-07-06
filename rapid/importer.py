@@ -107,6 +107,8 @@ class Importer(object):
                 else:
                     properties[sf.fields[i][0]] = record_entry
 
+            if 'ORIGID' in properties:
+                del properties['ORIGID']
             properties = to_json(properties)
 
             data.create_feature(geom, layer=layer, properties=properties)

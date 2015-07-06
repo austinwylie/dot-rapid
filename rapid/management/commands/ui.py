@@ -216,7 +216,7 @@ class Command(BaseCommand):
                                 'Select a layer to add (or \'b\' to go back): ').strip()
 
                             if response.isdigit():
-                                layer = all_layers[i]
+                                layer = all_layers[int(response)]
                                 r = requests.get(base_endpoint + '/geoview/{0}/add/layer/{1}'.format(geoview_uid, layer['uid']), params=token_params)
                                 print 'Accessed endpoint: {0}'.format(r.url)
                                 print 'Added layer to GeoView'
@@ -239,18 +239,18 @@ class Command(BaseCommand):
                             print 'Removed layer from GeoView'
                     pass
                 elif response == '3':
-                    response = raw_input('Only export recent data from last 7 days (\'y\' or \'n\'): ').strip()
-
-                    if response.lower() == 'y':
-                        end = datetime.date.today() - timedelta(days=7)
-                    else:
-                        end = None
+                    # response = raw_input('Only export recent data from last 7 days (\'y\' or \'n\'): ').strip()
+                    #
+                    # if response.lower() == 'y':
+                    #     end = datetime.date.today() - timedelta(days=7)
+                    # else:
+                    #     end = None
 
                     json_entry = r.json()[response_num]
                     geoview_uid = json_entry['uid']
 
                     print 'Exporting...'
-                    Exporter(token_key).export_geoview(geoview_uid, end=end)
+                    Exporter(token_key).export_geoview(geoview_uid, end=None)
                     print 'Done.'
                     return
                 elif response == '4':
@@ -285,11 +285,11 @@ class Command(BaseCommand):
                 r = requests.post(base_endpoint + '/layer/', params=token_params,
                                   data=json.dumps({"des": des, "public": public}))
                 print r.url
-                print '\n\n\n\n'
+                print '\n'
                 print r.text
 
             elif response.isdigit():
-                layer = all_layers[i]
+                layer = all_layers[int(response)]
                 r = requests.get(base_endpoint + '/layer/{0}'.format(layer['uid']),
                                  params=token_params)
                 print 'Accessed endpoint: {0}'.format(r.url)
@@ -378,15 +378,15 @@ class Command(BaseCommand):
                             print 'Invalid option.'
                     pass
                 elif response == '2':
-                    response = raw_input('Only export recent data from last 7 days (\'y\' or \'n\'): ').strip()
-
-                    if response.lower() == 'y':
-                        end = datetime.date.today() - timedelta(days=7)
-                    else:
-                        end = None
+                    # response = raw_input('Only export recent data from last 7 days (\'y\' or \'n\'): ').strip()
+                    #
+                    # if response.lower() == 'y':
+                    #     end = datetime.date.today() - timedelta(days=7)
+                    # else:
+                    #     end = None
 
                     print 'Exporting...'
-                    Exporter(token_key).export_layer(layer['uid'], end=end)
+                    Exporter(token_key).export_layer(layer['uid'], end=None)
                 elif response == '3':
                     r = requests.delete('{0}/layer/{1}'.format(base_endpoint, layer['uid']), params=token_params)
                     print r.json()

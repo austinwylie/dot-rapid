@@ -35,9 +35,6 @@ class Exporter(object):
 
     def export_geoview(self, geoview_uid, format=None, start=None, end=None):
         geoview = GeoView.objects.get(uid=geoview_uid)
-        print geoview
-        print 'HERE'
-        print len(geoview.get_features(self.token_key))
         self.export_shapefile(geoview.get_features(self.token_key))
 
     def get_type(self, features):
