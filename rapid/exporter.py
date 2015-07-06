@@ -13,6 +13,7 @@ class Exporter(object):
     def __init__(self, token_key=None):
         self.token_key = token_key
 
+    # exports a layer to a shapefile (in a default location)
     def export_layer(self, layer_uid, format=None, start=None, end=None):
 
         data = DataOperator(self.token_key)
@@ -33,10 +34,13 @@ class Exporter(object):
         self.export_shapefile(features)
         return True
 
+    # exports a layer to a shapefile (in a default location)
+    # iterates through all the associated layers with viewing permissions for user
     def export_geoview(self, geoview_uid, format=None, start=None, end=None):
         geoview = GeoView.objects.get(uid=geoview_uid)
         self.export_shapefile(geoview.get_features(self.token_key))
 
+    # determines feature set's shapefile geometry type
     def get_type(self, features):
         type_str = features[0].geom.geom_type
         sf_type = None
@@ -56,7 +60,7 @@ class Exporter(object):
             sf_type = shapefile.POINT
         return sf_type, type_str
 
-
+    # exports a shapefile set with a prj file to the specified location with the included shapefile writer from pyshp
     def write_shapefile(self, sf_writer, output_path, type_str):
         prj_content = 'GEOGCS["WGS 84",DATUM["WGS_1984",SPHEROID["WGS 84",6378137,298.257223563,AUTHORITY["EPSG","7030"]],'+\
                       'AUTHORITY["EPSG","6326"]],' +\
@@ -114,15 +118,7 @@ class Exporter(object):
         if feature.geom.geom_type.lower() == 'Point'.lower():
             sf.point(float(feature.geom.coords[0]), float(feature.geom.coords[1]))
         else:
-            # print 'COORDS'
-            # print feature.geom.coords
-            # print '\n'
-            parts = self.f(feature.geom.coords)
-            # print 'PARTS'
-            # print sf_type
-            # print feature.geom.geom_type
-            # print parts
-            # print '\n'
+            parts = self.iterate(feature.geom.coords)
 
             if sf_type == 3:
                 parts = [parts]
@@ -143,8 +139,8 @@ class Exporter(object):
                 record_values.append(None)
         sf.record(*record_values)
 
-    def f(self, t):
-        return [self.f(i) for i in t] if isinstance(t, (list, tuple)) else t
+    def iterate(self, t):
+        return [self.iterate(i) for i in t] if isinstance(t, (list, tuple)) else t
 
     def write_geom_type_sf(self, output_path, geom_type_group):
         features = list(geom_type_group[1])
@@ -156,7 +152,7 @@ class Exporter(object):
             self.write_sf_feature(sf, fields, feature, sf_type)
         self.write_shapefile(sf, output_path, type_str)
 
-
+    # writes a layer to a shapefile
     def write_layer_sf(self, layer_group):
         output_path = 'data/temp/'
         data = DataOperator(self.token_key)
@@ -167,12 +163,12 @@ class Exporter(object):
         for geom_type_group in geom_type_groups:
             self.write_geom_type_sf(output_path, geom_type_group)
 
-
+    # aggregates (like GROUP BY) features by their layer
     def group_features_by_layer(self, features):
         layer_groups = itertools.groupby(sorted(list(features), key=lambda z: z.layer_id), lambda x: x.layer_id)
         return layer_groups
 
-
+    # exports collection of features to a shapefile in the default location
     def export_shapefile(self, features):
         layer_groups = self.group_features_by_layer(features)
 
