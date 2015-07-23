@@ -3,6 +3,7 @@ from django_enumfield import enum
 
 import hmac
 import json
+import os
 import shortuuid
 import uuid
 import datetime
@@ -230,3 +231,39 @@ class DataLayerRole(models.Model):
     layer = models.ForeignKey(DataLayer)
 
     objects = models.GeoManager()
+
+class GeoFile(models.Model):
+    uid = models.TextField(primary_key=True)
+    content = models.BinaryField(null=True)
+    filename = models.TextField(null=True)
+    geom = models.GeometryField(null=True)
+    descriptor = models.TextField(null=True)
+
+    objects = models.GeoManager()
+
+    @staticmethod
+    def create_and_save_from_file(path, geom, descriptor=None):
+        filename = os.path.basename(path)
+        file = open(path, mode='r')
+
+        geofile = GeoFile()
+        geofile.uid = get_uid()
+        geofile.filename = filename
+        geofile.content = file.read()
+        geofile.geom = geom
+        geofile.descriptor = descriptor
+
+        geofile.save()
+        file.close()
+        return geofile
+
+    def write_to_disk_from_db(self, filepath):
+        file = open(filepath, 'w')
+        file.write(self.content)
+        file.close()
+
+    @staticmethod
+    def get_geofiles_in_geom(geom):
+        return GeoFile.objects.filter(geom__intersects=geom)
+
+
