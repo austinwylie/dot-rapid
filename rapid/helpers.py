@@ -5,7 +5,7 @@ import requests
 import shortuuid
 import zipfile
 
-
+# generates a new random UID
 def get_uid(hint=None):
     uid = shortuuid.uuid()
     return uid
@@ -20,6 +20,7 @@ def transform_wkt(geom, source_srid, target_srid=4326):
 
     return row
 
+# creates WKT from shapefile shape record components
 def create_wkt(geom_type, coords, parts):
     result = '{0}({1})'
     coords_string = ''
@@ -59,6 +60,7 @@ def create_wkt(geom_type, coords, parts):
     result = result.format(geom_type.upper(), coords_string)
     return result
 
+# zips a directory to a specified location
 def dir_zip(src, dst):
     zf = zipfile.ZipFile("%s.zip" % (dst), "w", zipfile.ZIP_DEFLATED)
     abs_src = os.path.abspath(src)
@@ -83,8 +85,6 @@ def to_json(params):
     jsonpickle.load_backend('json', 'dumps', 'loads', ValueError)
     jsonpickle.set_preferred_backend('json')
     jsonpickle.set_encoder_options('json', ensure_ascii=False)
-    # jsonpickle.set_encoder_options('simplejson', sort_keys=True, indent=4)
-    # jsonpickle.set_encoder_options('json', sort_keys=True, indent=4)
     out = jsonpickle.encode(params, unpicklable=False)
     out = out.replace(': None', ': null')
     return out
@@ -92,12 +92,10 @@ def to_json(params):
 def json_error(msg):
     return to_json({"status": str(msg)})
 
-def unzip_from(path):
+def unzip_from(path, output_path='data/temp'):
     import os
     import zipfile
     import time
-
-    output_path = 'data/temp'
 
     zip = zipfile.ZipFile(path)
     filename = os.path.basename(path)
