@@ -19,7 +19,6 @@ class Command(BaseCommand):
             print ''
 
             if response.lower() == 'q':
-                print 'Goodbye.'
                 token = None
                 done = True
             elif response.lower() == 'd':
@@ -62,7 +61,7 @@ class Command(BaseCommand):
 
             role = None
             while not role:
-                response = raw_input('Select a menu option: ').strip()
+                response = raw_input('Select a menu option (or \'q\' to go back): ').strip()
                 print ''
                 if response == '1':
                     role = 'owner'
@@ -70,6 +69,8 @@ class Command(BaseCommand):
                     role = 'editor'
                 elif response == '3':
                     role = 'viewer'
+                elif response == 'q':
+                    return
                 else:
                     print 'Invalid option.'
 
@@ -136,7 +137,7 @@ class Command(BaseCommand):
                 print '  [No layers]'
 
             response = raw_input(
-                'Select which layer to remove, or enter \'a\' to add a layer or \'b\' to go back: ').strip()
+                'Select which layer to remove, or enter \'a\' to add a layer (or \'q\' to go back): ').strip()
 
             option = None
             while not option:
@@ -148,7 +149,7 @@ class Command(BaseCommand):
                         print '  {0} - {1}'.format(i, all_layers[i]['descriptor'])
 
                     response = raw_input(
-                        'Select a layer to add (or \'b\' to go back): ').strip()
+                        'Select a layer to add (or \'q\' to go back): ').strip()
 
                     if response.isdigit():
                         layer = all_layers[int(response)]
@@ -158,12 +159,12 @@ class Command(BaseCommand):
                         print 'Accessed endpoint: {0}'.format(r.url)
                         print 'Added layer to GeoView'
                         # return
-                    elif response.lower() == 'b':
-                        pass
+                    elif response.lower() == 'q':
+                        return
 
-                    pass
-                elif response.lower() == 'b':
-                    pass
+
+                elif response.lower() == 'q':
+                    return
                 elif response.isdigit():
                     choice = int(response)
                     layer = layers[choice]
@@ -174,7 +175,6 @@ class Command(BaseCommand):
                     print r.text
                     print r.json()['status']
                     print 'Removed layer from GeoView'
-            pass
         elif response == '3':
             json_entry = r.json()[response_num]
             geoview_uid = json_entry['uid']
@@ -191,7 +191,10 @@ class Command(BaseCommand):
         if response_num == count:
             print 'Creating a GeoView:'
 
-            raw_input('Save the polygon of interest into geoview.geojson then press any key: ')
+            response = raw_input('Save the polygon of interest into geoview.geojson then press ENTER (or \'q\' to go back): ').strip()
+            if response == 'q':
+                return
+
             geom = open('data/geoview.geojson', 'r').read().strip()
 
             des = raw_input('Enter a descriptor: ')
@@ -219,7 +222,7 @@ class Command(BaseCommand):
             for each in menu_options:
                 print each
 
-            response = raw_input('Select a menu option: ').strip()
+            response = raw_input('Select a menu option (or \'q\' to go back): ').strip()
             self.handle_geoview_option(base_endpoint, geoview_uid, r, response, response_num, token_key, token_params)
 
     def handle_geoview(self, base_endpoint, response, token_key, token_params):
@@ -233,7 +236,11 @@ class Command(BaseCommand):
             count = i
         count += 1
         print '  ' + str(count) + ' - Create a GeoView'
-        response = raw_input('Select a menu option: ').strip()
+        response = raw_input('Select a menu option (or \'q\' to go back): ').strip()
+
+        if response == 'q':
+            return
+
         print ''
         try:
             response_num = int(response)
@@ -256,7 +263,7 @@ class Command(BaseCommand):
 
             role = None
             while not role:
-                response = raw_input('Select a menu option: ').strip()
+                response = raw_input('Select a menu option (or \'q\' to go back): ').strip()
                 print ''
                 if response == '1':
                     role = 'owner'
@@ -264,6 +271,8 @@ class Command(BaseCommand):
                     role = 'editor'
                 elif response == '3':
                     role = 'viewer'
+                elif response == 'q':
+                    return
                 else:
                     print 'Invalid option.'
 
@@ -323,7 +332,12 @@ class Command(BaseCommand):
             # end = None
 
             print 'Exporting...'
-            Exporter(token_key).export_layer(layer['uid'], end=None)
+            try:
+                Exporter(token_key).export_layer(layer['uid'], end=None)
+                print 'Done.'
+            except Exception, e:
+                log_exception(e)
+                print 'There was an error during export.'
         elif response == '3':
             r = requests.delete('{0}/layer/{1}'.format(base_endpoint, layer['uid']), params=token_params)
             print r.json()
@@ -338,7 +352,11 @@ class Command(BaseCommand):
                     filename = os.path.splitext(filename)[0]
                     print '  {0} - {1}'.format(i, filename)
 
-                response = raw_input('Enter a file to import into the layer: ').strip()
+                response = raw_input('Enter a file to import into the layer (or \'q\' to go back): ').strip()
+
+                if response == 'q':
+                    return
+
                 if response.isdigit():
                     choice = int(response)
 
@@ -381,13 +399,15 @@ class Command(BaseCommand):
             for each in menu_options:
                 print each
 
-            response = raw_input('Select a menu option: ').strip()
+            response = raw_input('Select a menu option (or \'q\' to go back): ').strip()
+
+            if response == 'q':
+                return
+
             self.handle_layer_activity(base_endpoint, layer, response, token_key, token_params)
 
         elif response.lower() == 'b':
             pass
-
-
 
         else:
             print 'Invalid option.'
@@ -404,7 +424,10 @@ class Command(BaseCommand):
         count += 1
         print '  {0} - {1}'.format(count, 'Create new layer')
         response = raw_input(
-            'Select an option: ').strip()
+            'Select an option (or \'q\' to go back): ').strip()
+
+        if response == 'q':
+            return
 
         self.handle_layer_option(all_layers, base_endpoint, count, response, token_key, token_params)
 
@@ -419,7 +442,7 @@ class Command(BaseCommand):
             self.handle_layer(base_endpoint, token_key, token_params)
 
     def print_top_menu_options(self):
-        print 'Available data and operations:'
+        print '\nAvailable data and operations:'
         menu_options = [
             '  1 - API Tokens',
             '  2 - GeoViews',
