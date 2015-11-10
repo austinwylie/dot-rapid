@@ -3,6 +3,8 @@ from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.static import serve
 import os
+from .forms import UploadFileForm
+from django.shortcuts import render_to_response, render
 from rest_framework.renderers import JSONRenderer
 import urllib
 import json
@@ -452,3 +454,27 @@ def getGeoview(request, geo_uid):
         message = "Deleted GeoView with uid " + str(geo_uid)
         return HttpResponse(json_error(message))
     return HttpResponse(json_error('ERROR: must GET or DELETE GeoViews'))
+
+@csrf_exempt
+def uploadPage(request):
+    form = UploadFileForm()
+    context = {'form':form}
+    return render(request, 'upload/uploadform.html', context)
+
+@csrf_exempt
+def uploadFile(request, file_name):
+    if request.method == 'POST':
+        form = UploadFileForm(request.POST, request.FILES)
+        if form.is_valid():
+            handle_uploaded_file(request.FILES['file'])
+            return HttpResponse(json_error('Success, uploadFile() completed successfully.'))
+    else:
+        form = UploadFileForm()
+    #return render_to_response('upload.html', {'form': form})
+    return HttpResponse(json_error('Things went badly.'))
+
+@csrf_exempt
+def handle_uploaded_file(f, file_name):
+    with open('/data/dropbox/' + file_name, 'wb+') as destination:
+        for chunk in f.chunks():
+            destination.write(chunk)
