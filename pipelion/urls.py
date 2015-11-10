@@ -8,6 +8,8 @@ urlpatterns = patterns('rapid.views',
 
     url(r'^rapid/tokens/$', 'getTokens'),
 
+    url(r'^rapid/upload/$', 'uploadPage'),
+
     url(r'^rapid/feature/$', 'features'),
     url(r'^rapid/layer/$', 'layers'),
     url(r'^rapid/geoview/$', 'geoviews'),
