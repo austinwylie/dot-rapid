@@ -466,7 +466,7 @@ def uploadFile(request, file_name):
     if request.method == 'POST':
         form = UploadFileForm(request.POST, request.FILES)
         if form.is_valid():
-            handle_uploaded_file(request.FILES['file'])
+            handle_uploaded_file(request.FILES['file'], file_name)
             return HttpResponse(json_error('Success, uploadFile() completed successfully.'))
     else:
         form = UploadFileForm()
