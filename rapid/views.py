@@ -467,11 +467,12 @@ def uploadFile(request, file_name):
         form = UploadFileForm(request.POST, request.FILES)
         if form.is_valid():
             handle_uploaded_file(request.FILES['file'], file_name)
-            return HttpResponse(json_error('Success, uploadFile() completed successfully.'))
+            return HttpResponse(json_error('Success, uploadFile(' + file_name + ') completed successfully.'))
+        else:
+            return HttpResponse(json_error('Form was not valid'))
     else:
         form = UploadFileForm()
-    #return render_to_response('upload.html', {'form': form})
-    return HttpResponse(json_error('Things went badly.'))
+        return HttpResponse(json_error('request.method != "POST"'))
 
 @csrf_exempt
 def handle_uploaded_file(f, file_name):
