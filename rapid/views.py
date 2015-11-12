@@ -469,7 +469,8 @@ def uploadFile(request, file_name):
             handle_uploaded_file(request.FILES['file'], file_name)
             return HttpResponse(json_error('Success, uploadFile(' + file_name + ') completed successfully.'))
         else:
-            return HttpResponse(json_error('Form was not valid'))
+            context = {'form' : form}
+            return render(request, 'upload/formerrors.html', context)
     else:
         form = UploadFileForm()
         return HttpResponse(json_error('request.method != "POST"'))
