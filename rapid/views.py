@@ -462,12 +462,15 @@ def uploadPage(request):
     return render(request, 'upload/uploadform.html', context)
 
 @csrf_exempt
-def uploadFile(request, file_name):
+def uploadFile(request):
+
     if request.method == 'POST':
         form = UploadFileForm(request.POST, request.FILES)
+
         if form.is_valid():
-            handle_uploaded_file(request.FILES['file'], file_name)
-            return HttpResponse(json_error('Success, uploadFile(' + file_name + ') completed successfully.'))
+            handle_uploaded_file(request.FILES['file'], request.POST)
+            context = {'form' : form, 'filename': request.FILES['file'].name}
+            return render(request, 'upload/uploadsuccess.html', context)
         else:
             context = {'form' : form}
             return render(request, 'upload/formerrors.html', context)
@@ -476,7 +479,43 @@ def uploadFile(request, file_name):
         return HttpResponse(json_error('request.method != "POST"'))
 
 @csrf_exempt
-def handle_uploaded_file(f, file_name):
-    with open('/data/dropbox/' + file_name, 'wb+') as destination:
+def handle_uploaded_file(f, request):
+
+    ext = f.name[-3:]
+
+    file_path = '/home/dotproj/djangostack-1.7.8-0/apps/django/django_projects/pipelion/data/dropbox/' + f.name
+
+    with open(file_path, 'wb+') as destination:
         for chunk in f.chunks():
             destination.write(chunk)
+
+    token_key = request['token']
+    data = DataOperator(token_key)
+
+    if request['des']:
+        descriptor = request['des']
+
+    try:
+        is_public = request['public']
+    except:
+        is_public = False
+
+    try:
+        properties = request['props']
+    except:
+        properties = None
+
+    uid = data.create_layer(descriptor, is_public, properties)
+
+    role = DataLayerRole(layer_id=uid, token=data.get_apitoken(), role=Role.OWNER)
+    role.save()
+
+    importer = Importer(token_key)
+
+    if (ext.upper() == 'ZIP'):
+        importer.import_shapefile(file_path, uid)
+
+    if (ext.upper() == 'JSON'):
+        importer.import_geojson_file(file_path, uid)
+
+    return

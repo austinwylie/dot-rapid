@@ -97,7 +97,7 @@ def to_json(params):
 def json_error(msg):
     return to_json({"status": str(msg)})
 
-def unzip_from(path, output_path='data/temp'):
+def unzip_from(path, output_path='/home/dotproj/djangostack-1.7.8-0/apps/django/django_projects/pipelion/data/temp'):
     import os
     import zipfile
     import time
@@ -108,6 +108,8 @@ def unzip_from(path, output_path='data/temp'):
     new_dir = filename + '_' + str(int(time.time()))
 
     extract_path = output_path + '/' + new_dir
+
+    os.mkdir(extract_path)
 
     zip.extractall(extract_path)
 

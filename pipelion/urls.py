@@ -9,7 +9,7 @@ urlpatterns = patterns('rapid.views',
     url(r'^rapid/tokens/$', 'getTokens'),
 
     url(r'^rapid/upload/$', 'uploadPage'),
-    url(r'^rapid/uploadFile/(?P<file_name>[\w]*\.[\w]{3})$', 'uploadFile'),
+    url(r'^rapid/uploadFile/$', 'uploadFile'),
 
     url(r'^rapid/feature/$', 'features'),
     url(r'^rapid/layer/$', 'layers'),
