@@ -102,16 +102,17 @@ def unzip_from(path, output_path='/home/dotproj/djangostack-1.7.8-0/apps/django/
     import zipfile
     import time
 
-    zip = zipfile.ZipFile(path)
-    filename = os.path.basename(path)
-    filename = os.path.splitext(filename)[0]
-    new_dir = filename + '_' + str(int(time.time()))
+    if (zipfile.is_zipfile(path)):
 
-    extract_path = output_path + '/' + new_dir
+        zip = zipfile.ZipFile(path)
 
-    os.mkdir(extract_path)
+        filename = os.path.basename(path)
+        filename = os.path.splitext(filename)[0]
+        new_dir = filename + '_' + str(int(time.time()))
 
-    zip.extractall(extract_path)
+        extract_path = output_path + '/' + new_dir
+
+        zip.extractall(extract_path)
 
     return new_dir, filename
 
