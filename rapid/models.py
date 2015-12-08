@@ -1,5 +1,6 @@
 from django.contrib.gis.db import models
 from django_enumfield import enum
+from django.contrib.auth.models import User
 
 import hmac
 import json
@@ -267,3 +268,6 @@ class GeoFile(models.Model):
         return GeoFile.objects.filter(geom__intersects=geom)
 
 
+class UserProfile(models.Model):
+    user = models.OneToOneField(User)
+    token = models.ForeignKey(ApiToken)

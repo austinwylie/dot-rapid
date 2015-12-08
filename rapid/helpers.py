@@ -101,20 +101,28 @@ def unzip_from(path, output_path='/home/dotproj/djangostack-1.7.8-0/apps/django/
     import os
     import zipfile
     import time
+    from shutil import rmtree
+
+    filename = os.path.basename(path)
+    filename = os.path.splitext(filename)[0]
 
     if (zipfile.is_zipfile(path)):
 
         zip = zipfile.ZipFile(path)
 
-        filename = os.path.basename(path)
-        filename = os.path.splitext(filename)[0]
         new_dir = filename + '_' + str(int(time.time()))
 
         extract_path = output_path + '/' + new_dir
 
         zip.extractall(extract_path)
 
-    return new_dir, filename
+        return new_dir, filename
+
+    else:
+        os.remove(path)
+        raise Exception(filename + ' was not a .zip archive!')
+        return
+
 
 def setup_logging_to_file(filename):
     logging.basicConfig( filename=filename,

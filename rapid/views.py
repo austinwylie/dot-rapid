@@ -2,8 +2,10 @@ from django.contrib.gis.geos import GEOSGeometry
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.static import serve
+from django.template import RequestContext
 import os
-from .forms import UploadFileForm
+from .models import ApiToken
+from .forms import UploadFileForm, UserForm, UserProfileForm
 from django.shortcuts import render_to_response, render
 from rest_framework.renderers import JSONRenderer
 import urllib
@@ -505,17 +507,82 @@ def handle_uploaded_file(f, request):
     except:
         properties = None
 
-    uid = data.create_layer(descriptor, is_public, properties)
+    layer_uid = data.create_layer(descriptor, is_public, properties)
 
-    role = DataLayerRole(layer_id=uid, token=data.get_apitoken(), role=Role.OWNER)
+    role = DataLayerRole(layer_id=layer_uid, token=data.get_apitoken(), role=Role.OWNER)
     role.save()
 
     importer = Importer(token_key)
 
     if (ext.upper() == 'ZIP'):
-        importer.import_shapefile(file_path, uid)
+        importer.import_shapefile(file_path, layer_uid)
 
     if (ext.upper() == 'JSON'):
-        importer.import_geojson_file(file_path, uid)
+        importer.import_geojson_file(file_path, layer_uid)
 
     return
+
+
+def register(request):
+    # Get the request's context.
+    context = RequestContext(request)
+
+    # A boolean value for telling the template whether the registration was successful.
+    # Set to False initially. Code changes value to True when registration succeeds.
+    registered = False
+
+    # If it's a HTTP POST, we're interested in processing form data.
+    if request.method == 'POST':
+        # Attempt to grab information from the raw form information.
+        # Note that we make use of both UserForm and UserProfileForm.
+        user_form = UserForm(data=request.POST)
+        profile_form = UserProfileForm(data=request.POST)
+
+        # If the two forms are valid...
+        if user_form.is_valid() and profile_form.is_valid():
+
+            # Save the user's form data to the database.
+            user = user_form.save()
+
+            # Now we hash the password with the set_password method.
+            # Once hashed, we can update the user object.
+            user.set_password(user.password)
+            user.save()
+
+            # Now sort out the UserProfile instance.
+            try:
+                token = ApiToken.objects.get(descriptor=user_form.Meta.model.username)
+            except:
+                token = ApiToken()
+                token.setup(user.username)
+                token.save()
+
+
+            # Since we need to set the user attribute ourselves, we set commit=False.
+            # This delays saving the model until we're ready to avoid integrity problems.
+            profile = profile_form.save(commit=False)
+            profile.user = user
+            profile.token = token
+
+            # Now we save the UserProfile model instance.
+            profile.save()
+
+            # Update our variable to tell the template registration was successful.
+            registered = True
+
+        # Invalid form or forms - mistakes or something else?
+        # Print problems to the terminal.
+        # They'll also be shown to the user.
+        else:
+            print user_form.errors, profile_form.errors
+
+    # Not a HTTP POST, so we render our form using two ModelForm instances.
+    # These forms will be blank, ready for user input.
+    else:
+        user_form = UserForm()
+        profile_form = UserProfileForm()
+
+    # Render the template depending on the context.
+    return render_to_response(
+            'register/register.html',
+            {'user_form': user_form, 'profile_form': profile_form, 'registered': registered}, context)
