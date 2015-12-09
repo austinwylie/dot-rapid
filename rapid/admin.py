@@ -5,4 +5,4 @@ from rapid.models import GeoView, Feature, UserProfile
 
 admin.site.register(GeoView)
 admin.site.register(Feature)
-admin.site.register(UserProfile)
+#admin.site.register(UserProfile)

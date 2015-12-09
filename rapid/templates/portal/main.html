@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>RAPID Portal: {% username %}</title>
+    </head>
+
+    <body>
+        <h1>Welcome {% username %} to the labyrinth beyond all understanding!</h1>
+
+        <p>Your SECRET token is {% token %}</p>
+
+        {% if user.is_authenticated %}
+            <a href="/rapid/logout/">LOGOUT</a>
+        {% endif %}
+
+    </body>
+</html>
