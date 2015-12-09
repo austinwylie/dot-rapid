@@ -19,6 +19,9 @@ urlpatterns = patterns('rapid.views',
     url(r'^rapid/login/$', 'user_login'),
     url(r'^rapid/logout/$', 'user_logout'),
 
+    # Portal
+    url(r'^rapid/portal/$', 'portal'),
+
 ############# REST API calls ################
     url(r'^rapid/feature/$', 'features'),
     url(r'^rapid/layer/$', 'layers'),
