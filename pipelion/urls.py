@@ -22,6 +22,7 @@ urlpatterns = patterns('rapid.views',
     # Portal
     url(r'^rapid/portal/$', 'portal'),
 
+    # TEST #
 ############# REST API calls ################
     url(r'^rapid/feature/$', 'features'),
     url(r'^rapid/layer/$', 'layers'),
